@@ -11,7 +11,8 @@ import { HelloResolver } from "./resolvers/hello";
 const main = async () => {
     const orm = await MikroORM.init(mikroOrmConfig);
     await orm.getMigrator().up();
-    
+
+    const testVariable = new Post();
     const app = express();
     
     const apolloServer = new ApolloServer({

@@ -1,7 +1,7 @@
 import { __prod__ } from "./constants";
-import { Post } from "./entitites/Post";
 import { MikroORM } from "@mikro-orm/core";
 import path from 'path';
+import { Post } from "./entities/Post";
 
 // console.log("dirname: ", __dirname);
 

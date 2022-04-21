@@ -2,11 +2,12 @@ import { __prod__ } from "./constants";
 import { MikroORM } from "@mikro-orm/core";
 import path from 'path';
 import { Post } from "./entities/Post";
+import { User } from "./entities/User";
 
 // console.log("dirname: ", __dirname);
 
 export default {
-    entities: [Post],
+    entities: [Post, User],
     dbName: 'lireddit',
     user: 'postgres',
     password: 'Luigimario1',

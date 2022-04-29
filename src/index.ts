@@ -8,10 +8,11 @@ import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
 
-import * as redis from 'redis';
-import session from 'express-session';
-import connectRedis from 'connect-redis'
 import { MyContext } from "./types";
+
+import session from 'express-session';
+import pgConnect from 'connect-pg-simple';
+import pool from 'pg';
 
 
 const main = async () => {
@@ -20,20 +21,19 @@ const main = async () => {
 
     const app = express();
 
-    DebugInfo("Start Redis connect");
-    const RedisStore = connectRedis(session);
-    const redisClient = redis.createClient({
-        
-    });  
-    await redisClient.connect();
-    DebugInfo("Connected to Redis");
-    
+    const pgClient = pgConnect(session);
+    DebugInfo("Test");
+    const pgPool = new pool.Pool({
+        // Pool options
+    });
+
     app.use(
         session({
             name: 'sid',
-            store: new RedisStore({
-                client: redisClient,
-                disableTouch: true,
+            store: new pgClient({
+                pool : pgPool,
+                tableName : "user_sessions",
+                fart : 
             }),
             cookie: {
                 maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
@@ -41,24 +41,24 @@ const main = async () => {
                 sameSite: 'lax',
                 secure: __prod__
             },
-            secret: "secret_string",
+            secret: "fart",
             resave: false,
         })
-        );
+    );
         
-        const apolloServer = new ApolloServer({
-            schema: await buildSchema({
-                resolvers: [HelloResolver, PostResolver, UserResolver],
-                validate: false,
-            }),
-            context: ({req, res}): MyContext => ({em: orm.em, req, res})
-        });
-        await apolloServer.start();
-        apolloServer.applyMiddleware({ app });
-        // test t
-        app.listen(4000, () => {
-            DebugInfo('Server started on port 4000');
-        });
+    const apolloServer = new ApolloServer({
+        schema: await buildSchema({
+            resolvers: [HelloResolver, PostResolver, UserResolver],
+            validate: false,
+        }),
+        context: ({req, res}): MyContext => ({em: orm.em, req, res})
+    });
+    await apolloServer.start();
+    apolloServer.applyMiddleware({ app });
+
+    app.listen(4000, () => {
+        DebugInfo('Server started on port 4000');
+    });
 };
 
 main().catch((err) => {

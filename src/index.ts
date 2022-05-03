@@ -11,8 +11,10 @@ import { UserResolver } from "./resolvers/user";
 import { MyContext } from "./types";
 
 import session from 'express-session';
+import { conObject } from "./env";
 import pgConnect from 'connect-pg-simple';
-import pool from 'pg';
+import client from 'pg';
+import { ClientRequest } from "http";
 
 
 const main = async () => {
@@ -21,43 +23,45 @@ const main = async () => {
 
     const app = express();
 
-    const pgClient = pgConnect(session);
-    DebugInfo("Test");
-    const pgPool = new pool.Pool({
-        // Pool options
-    });
+    // session store and session config
+    const pgSession = require('connect-pg-simple')(session);
+    const store = new pgSession({
+        conObject,
+    })
 
     app.use(
         session({
             name: 'sid',
-            store: new pgClient({
-                pool : pgPool,
-                tableName : "user_sessions",
-                fart : 
-            }),
+            store: store,
             cookie: {
                 maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
-                httpOnly: true,
+                httpOnly: false,
                 sameSite: 'lax',
-                secure: __prod__
+                secure: true
             },
+            saveUninitialized: false,
             secret: "fart",
             resave: false,
         })
     );
-        
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
             resolvers: [HelloResolver, PostResolver, UserResolver],
             validate: false,
         }),
+        introspection: true,
         context: ({req, res}): MyContext => ({em: orm.em, req, res})
     });
     await apolloServer.start();
-    apolloServer.applyMiddleware({ app });
+    const cors = {
+        credentials: true,
+        origin: 'https://studio.apollographql.com'
+    }
+    apolloServer.applyMiddleware({ app, cors});
 
-    app.listen(4000, () => {
-        DebugInfo('Server started on port 4000');
+    const port = 4000;
+    app.listen(port, () => {
+        DebugInfo('Server started on port ' + port);
     });
 };
 

@@ -52,6 +52,7 @@ export class UserResolver {
         @Arg("options") options: UsernamePasswordInput,
         @Ctx() {em, req}: MyContext
     ) {
+        
         if (options.username.length <= 2){
             return {
                     errors: [{
@@ -65,7 +66,7 @@ export class UserResolver {
             return {
                     errors: [{
                         field: 'password',
-                        message: 'password length must be greater than 2',
+                        message: 'password length must be greater than 5',
                     },
                 ],
             };
